@@ -402,7 +402,7 @@ class Authenticate:
                 "status": "SUBSCRIBED"
             }
 
-            response = requests.post('https://emailoctopus.com/api/1.6/lists/a7f14044-54c0-11ee-bed9-57e59232c7ed/contacts', headers=headers, data=json.dumps(data))
+            response = requests.post('https://emailoctopus.com/api/1.6/lists/0733b614-a203-11ef-8cda-3739c0ea4ac7/contacts', headers=headers, data=json.dumps(data))
 
             print(response.text)
 
@@ -410,13 +410,39 @@ class Authenticate:
             print(e)
 
         # Call FastAPI email verification service after successfully adding to users and Octupus list
-        verification_url = os.get_environ("VERIFICATION_URL")
-        data = {'email': email, 'id': '123'}
-        response = requests.post(verification_url, json=data)
-        if response.status_code != 200:
-            print(f"Failed to send verification email: {response.text}")
+        # Retrieve the verification URL from environment variables
+        verification_url = os.getenv("VERIFICATION_URL")  # Correct method is getenv, not get_environ
+        if not verification_url:
+            raise ValueError("VERIFICATION_URL is not set in the environment variables.")
 
-        
+        # Prepare the data payload
+        data = {
+            "email": email,  # Replace with your actual email
+            "id": "string"                      # Replace with the actual ID or keep it as 'string' for testing
+        }
+
+        # Print data for debugging
+        print("Verification URL:", verification_url)
+        print("Data payload:", data)
+
+        # Send the POST request
+        try:
+            response = requests.post(
+                verification_url,
+                headers={"accept": "application/json", "Content-Type": "application/json"},
+                json=data  # JSON data is sent using the `json` parameter
+            )
+            # Check response status
+            if response.status_code == 200:
+                print("Verification email sent successfully!")
+                print("Response:", response.json())
+            else:
+                print(f"Failed to send verification email. Status code: {response.status_code}")
+                print("Response content:", response.text)
+        except Exception as e:
+            print("An error occurred while sending the verification email:", str(e))
+
+            
 
 
     def register_user(self, form_name: str, location: str='main', preauthorization=True) -> bool:
